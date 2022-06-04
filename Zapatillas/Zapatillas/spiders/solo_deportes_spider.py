@@ -1,41 +1,43 @@
 import scrapy
 import time
 from scrapy.crawler import CrawlerProcess
+import csv
 
-class sd_Spider(scrapy.Spider):#ok
+zapas= 'solodeportes.csv'
+
+class sd_Spider(scrapy.Spider):
     name='sd'
     base = 'https://www.solodeportes.com.ar/hombre/calzado.html?p={}&_=16538649558{}'
     numero1=1
     numero2=16
     
     start_urls = [base.format("1","16")]
-    custom_settings = {
-        'FEED_URI':'lista_de_precios_sd.json',
-        'FEED_FORMAT':'json'
-    }   
+       
 
     def parse(self, response):
+
+        #Selectores
         precio_producto = response.xpath('//li[@class="item product product-item"]//div//div//a//div//span[@class="old-price"]//span//span/@content').getall()
         nombre_producto = response.xpath('//li[@class="item product product-item"]//div//div//a/@title').getall()
-        siguiente_pagina= self.numero1
-    
+        
+        #se ordenan dentro de un diccionario
         dicionario_de_precios= dict(zip(nombre_producto,precio_producto))
 
-        yield dicionario_de_precios
+        #Se escribe los resultados de la pagina en el archivo cvs
+        with open(zapas,'a',newline='') as archivo:
+            writer = csv.writer(archivo,delimiter=',')
+            for nombre,precio in dicionario_de_precios.items():
+                writer.writerow([nombre,precio])
         
-        if siguiente_pagina<=32:
+        if self.numero1<=32:
 
             self.numero1+=1
             self.numero2+=1
 
-            a=self.numero1
-            a=str(a)
-            b=self.numero2
-            b=str(b)
+            siguiente_pagina = self.base.format(str(self.numero1),str(self.numero2))
 
-            siguiente_pagina = self.base.format(a,b)
             print("***NEXT PAGE ***")
-            time.sleep(3)
+            time.sleep(3) #se espera unos segundos para evitar el baneo de ip departe del servidor
             yield response.follow(siguiente_pagina,callback=self.parse)
 
 if __name__ == '__main__':

@@ -1,13 +1,18 @@
 import scrapy
 import time
 from scrapy.crawler import CrawlerProcess
+import csv
+
+zapas= 'tiendadash.cvs'
 digitos=("123456789.,")
 
-class td_Spider(scrapy.Spider):#ok
-    
+class td_Spider(scrapy.Spider):
+
     name='td'
     numero_pagina=1
+    
     base = 'https://www.tiendadash.com.ar/buscapagina?fq=C%3a%2f1%2f2%2f&fq=specificationFilter_23%3aHombre&O=OrderByReleaseDateDESC&PS=24&sl=b71bf1eb-efcb-489b-ae99-6837a3c3b14e&cc=1&sm=0&PageNumber={}'
+    
     start_urls = [base.format(str(numero_pagina))]
     
     custom_settings = {
@@ -17,11 +22,12 @@ class td_Spider(scrapy.Spider):#ok
 
     def parse(self, response):
         
+        #Selectores
         precio_productos = response.xpath('//span[@class="price"]//a//span[@class="best-price"]/text()').getall() #con espacios
         nombre_producto = response.xpath('//div[@class="product-name"]//@title').getall()
-        siguiente_pagina= self.numero_pagina
 
-        """limpiear precio"""
+
+        #Se extrae solo el precio del string encontrado
         nuevo_precio=''
         precios_limpios=[]
 
@@ -32,19 +38,20 @@ class td_Spider(scrapy.Spider):#ok
             precios_limpios.append(nuevo_precio)
             nuevo_precio=''
 
-        """fin limpieza"""
+        #Se ordenan dentro de un diccionario
         dicionario_de_precios= dict(zip(nombre_producto,precios_limpios))
 
-        yield dicionario_de_precios
+        #Se escribe los resultados de la pagina en el archivo cvs
+        with open(zapas,'a',newline='') as archivo:
+            writer = csv.writer(archivo,delimiter=',')
+            for nombre,precio in dicionario_de_precios.items():
+                writer.writerow([nombre,precio])
         
-        if siguiente_pagina<=15:
+        if self.numero_pagina<=15:
 
             self.numero_pagina+=1
 
-            a=self.numero_pagina
-            a=str(a)
-
-            siguiente_pagina = self.base.format(str(a))
+            siguiente_pagina = self.base.format(str(self.numero_pagina))
 
             print("***NEXT PAGE ***")
             time.sleep(3)
