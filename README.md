@@ -20,7 +20,7 @@ Proyecto hecho con el framework Scrapy que extrae el nombre y precio de zapatill
  
      ###### ~Windows
      
-    `python3 -m venv venv`
+    `py -m venv venv`
     
     `venv\Scripts\activate`
       
