@@ -1,6 +1,6 @@
 # Web Scraper
 
-Proyecto hecho con el framework Scrapy que extrae el nombre y precio de zapatillas para posterior comparacion o analisis de estos datos.
+Extrae el nombre y precio de zapatillas desde distintas páginas argentinas creando un archivo CSV por cada página.
 
 ![image](https://user-images.githubusercontent.com/96092963/171971531-c5f67412-0318-404b-b809-acf3a11ba529.png)
 
